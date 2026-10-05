@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FI Selection and Contracting</title>
+<style>html{color-scheme:light dark}body{margin:0}</style>
+</head>
+<body>
+<style id="css">
+/* Layout: one flowchart stage with a detail panel at the right, label rails below, glossary last. Visual language follows the v9 lifecycle chart. */
+:root{
+  --p:#1f4e79; --l:#3f86c9; --fi:#b8437f; --c:#1f9e89; --e:#e39b2d; --ob:#6a3fa0; --enf:#8a2d2d;
+  --bg:#eef2f6; --card:#ffffff; --line:#c9d1da; --soft:#e3e8ee; --ink:#1d2630; --ink2:#3b4652; --mute:#68737f;
+  --tint-p:#e6edf5; --shadow:rgba(30,50,70,.18);
+  --font:"Segoe UI",Helvetica,Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --p:#6ea6dc; --l:#6fb0ee; --fi:#e07aae; --c:#3cc4ae; --e:#f0b049; --ob:#b293e0; --enf:#e58a8a;
+  --bg:#12181f; --card:#1b232c; --line:#34414f; --soft:#263039; --ink:#e8edf2; --ink2:#b6c0cb; --mute:#8d99a6;
+  --tint-p:#1d2a38; --shadow:rgba(0,0,0,.5); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --p:#6ea6dc; --l:#6fb0ee; --fi:#e07aae; --c:#3cc4ae; --e:#f0b049; --ob:#b293e0; --enf:#e58a8a;
+  --bg:#12181f; --card:#1b232c; --line:#34414f; --soft:#263039; --ink:#e8edf2; --ink2:#b6c0cb; --mute:#8d99a6;
+  --tint-p:#1d2a38; --shadow:rgba(0,0,0,.5); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);padding-inline:16px;padding-block:14px 28px}
+.app{max-width:1320px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:10px 16px;align-items:start}
+header{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px}
+header h1{font-size:21px;margin:0;font-weight:700}
+header .sub{font-size:12.5px;color:var(--mute)}
+[contenteditable="true"]{outline:1.5px dashed var(--mute);outline-offset:3px;border-radius:3px}
+.tools{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.btn{font:inherit;font-size:12.5px;color:var(--ink2);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 13px;cursor:pointer}
+.btn:hover{border-color:var(--ink2);color:var(--ink)}
+.btn[aria-pressed="true"]{background:var(--p);border-color:var(--p);color:var(--card)}
+.btn.save{border-color:var(--c);color:var(--ink)}
+.btn.save:disabled{opacity:.45;cursor:default;border-color:var(--line)}
+.status{font-size:12px;color:var(--mute)}
+:focus-visible{outline:2.5px solid var(--l);outline-offset:2px}
+/* the stage */
+.main{display:flex;flex-direction:column;gap:10px;min-width:0}
+.stage{border:2px solid var(--p);border-radius:14px;background:var(--card);box-shadow:0 2px 14px -6px var(--shadow);min-width:0;overflow:hidden}
+.shelf{display:flex}
+.tab{font-size:12px;font-weight:700;letter-spacing:.02em;display:flex;align-items:center;gap:7px;padding:4px 14px 5px 9px;border-radius:11px 0 10px 0;background:var(--p);color:var(--card)}
+.tab b{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;background:var(--card);color:var(--p);font-size:10.5px}
+.svgwrap{overflow-x:auto;padding:6px 8px 10px}
+svg#dg{display:block;width:100%;min-width:760px;height:auto}
+.step{cursor:pointer;transition:opacity .15s}
+.step .card{fill:var(--card);stroke:var(--line);stroke-width:1.3;filter:drop-shadow(0 1.5px 2.5px var(--shadow))}
+.step:hover .card{stroke:var(--ink2);stroke-width:1.8}
+.step.sel .card{stroke:var(--ink);stroke-width:2.8;filter:drop-shadow(0 5px 10px var(--shadow))}
+.step.hl .card{stroke:var(--ink);stroke-width:2.2}
+.step.cue .card{stroke:var(--mute);stroke-dasharray:7 5;stroke-width:1.8;fill:var(--bg)}
+svg.pin .step:not(.sel),svg.focus .step:not(.hl){opacity:.3}
+svg.pin .flow,svg.focus .flow{opacity:.3}
+.t{fill:var(--ink);font-size:14.5px;font-weight:700}
+.f{fill:var(--ink2);font-size:12.5px}
+.lab{font-size:12.5px;font-weight:600}
+.numc{fill:var(--ink2)} .numt{fill:var(--card);font-size:11px;font-weight:700;text-anchor:middle}
+.proc{stroke:var(--ink2);stroke-width:2;fill:none}
+.acct{stroke:var(--l);stroke-width:2.2;stroke-dasharray:7 5;fill:none}
+.ahp{fill:var(--ink2)} .aha{fill:var(--l)}
+.mk{font-size:12.5px;fill:var(--ink2)}
+.mk i{font-style:normal}
+/* rails */
+.rails{display:flex;flex-direction:column;gap:6px}
+.rail{display:flex;align-items:center;flex-wrap:wrap;gap:6px;--rc:var(--p)}
+.rl{font-size:12px;font-weight:700;color:var(--ink2);min-width:132px;display:flex;align-items:center;gap:6px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
+.chip{font:inherit;font-size:12.5px;color:var(--ink2);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 11px;cursor:pointer;line-height:1.2}
+.chip:hover,.chip.on{border-color:var(--ink2);color:var(--ink)}
+.chip.rel{border-color:var(--rc);background:color-mix(in srgb,var(--rc) 20%,var(--card));color:var(--ink);box-shadow:0 0 0 1.5px var(--rc)}
+.chip.add{border-style:dashed;color:var(--mute)}
+.app.pin .chip:not(.rel){opacity:.5}
+/* side panel */
+aside{grid-column:2;grid-row:2;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;font-size:13px;color:var(--ink2);position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;min-width:0}
+aside h2{font-size:16px;margin:0 0 4px;color:var(--ink)}
+aside .sub{color:var(--mute);font-size:12px;margin-bottom:10px}
+aside h4{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin:14px 0 6px}
+aside p{margin:0 0 6px;line-height:1.45}
+aside .open{border-left:3px solid var(--e);padding-left:8px;font-size:12.5px}
+aside .hint{margin-top:12px;font-size:11.5px;color:var(--mute)}
+.tags{display:flex;flex-wrap:wrap;gap:5px}
+.tag{font-size:11.5px;border:1px solid var(--soft);border-radius:999px;padding:2px 8px;background:var(--bg)}
+.who{display:flex;gap:6px 10px;flex-wrap:wrap;margin-bottom:8px}
+.who span{font-size:12px;display:flex;align-items:center;gap:5px}
+.key{display:grid;grid-template-columns:44px 1fr;gap:6px 8px;align-items:center;font-size:12px}
+.nest{border:1.5px solid var(--p);border-radius:10px;padding:6px 10px 8px;font-size:12px;font-weight:700;color:var(--p);background:var(--tint-p)}
+.nest small{font-weight:400;color:var(--ink2)}
+.nest.nl{border-color:var(--l);color:var(--l);margin-top:5px;background:transparent}
+.nest.nf{border-color:var(--fi);color:var(--fi);margin-top:5px;background:transparent}
+/* edit forms */
+.form{display:flex;flex-direction:column;gap:9px}
+.form label{display:flex;flex-direction:column;gap:3px;font-size:11.5px;font-weight:700;color:var(--mute);letter-spacing:.02em}
+.form input[type=text],.form textarea,.form select,.gl input{font:inherit;font-size:13px;font-weight:400;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px;width:100%}
+.form textarea{resize:vertical;min-height:62px;line-height:1.4}
+.form .checks{display:flex;flex-wrap:wrap;gap:4px 12px}
+.form .checks label{flex-direction:row;align-items:center;gap:5px;font-weight:400;color:var(--ink2);font-size:12.5px}
+.form .pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.form .note{font-size:11.5px;color:var(--mute);font-weight:400}
+.btn.del{color:var(--enf);border-color:var(--enf);align-self:flex-start}
+/* glossary */
+.glossary{grid-column:1/-1;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 20px;min-width:0}
+.glossary h2{font-size:16px;margin:0 0 2px}
+.glossary .sub{font-size:12px;color:var(--mute);margin-bottom:10px}
+.gl{display:grid;grid-template-columns:minmax(120px,200px) 1fr;margin:0;border-top:1px solid var(--soft)}
+.gl dt,.gl dd{margin:0;padding:7px 0;border-bottom:1px solid var(--soft);line-height:1.45;font-size:13px;min-width:0}
+.gl dt{font-weight:700;color:var(--ink);padding-right:12px}
+.gl dd{color:var(--ink2)}
+.glrow{display:grid;grid-template-columns:minmax(110px,200px) 1fr auto;gap:8px;margin-bottom:6px;align-items:start}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:999px;font-size:13px;z-index:20}
+/* pop-up for detail that does not fit the side panel */
+.tag.pop{font:inherit;font-size:11.5px;color:var(--ink);cursor:pointer;border-color:var(--p);background:var(--tint-p)}
+.tag.pop:hover{border-color:var(--ink2)}
+.tag.tbd{border-color:var(--e);background:color-mix(in srgb,var(--e) 18%,var(--card))}
+.modal{position:fixed;inset:0;background:rgba(10,16,22,.45);display:none;place-items:center;z-index:10;padding:16px}
+.modal.show{display:grid}
+.mbox{background:var(--card);border-radius:12px;border-top:4px solid var(--p);box-shadow:0 12px 40px -10px rgba(0,0,0,.5);width:min(580px,100%);max-height:86vh;overflow:auto;padding:16px 20px 18px;font-size:13px;color:var(--ink2);position:relative}
+.mbox h2{font-size:16px;margin:0 0 2px;color:var(--ink)}
+.mbox .sub{color:var(--mute);font-size:12px;margin-bottom:10px}
+.mbox .x{position:absolute;top:8px;right:10px;font:inherit;font-size:20px;line-height:1;border:0;background:none;color:var(--mute);cursor:pointer}
+.mbox .x:hover{color:var(--ink)}
+.mbox h4{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin:14px 0 6px}
+.mbox .open{border-left:3px solid var(--e);padding-left:8px;margin:0 0 6px;font-size:12.5px;line-height:1.45}
+.mbox .hint{margin-top:10px;font-size:11.5px;color:var(--mute)}
+.rep{display:grid;grid-template-columns:120px 1fr;margin:0;border-top:1px solid var(--soft)}
+.rep dt,.rep dd{margin:0;padding:7px 0;border-bottom:1px solid var(--soft);line-height:1.4;min-width:0}
+.rep dt{font-weight:700;color:var(--ink)}
+.prow{border:1px solid var(--soft);border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:6px}
+@media (max-width:900px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  aside{grid-column:1;grid-row:auto;position:static;max-height:none}
+  .glrow{grid-template-columns:1fr}
+  .gl{grid-template-columns:1fr} .gl dt{border-bottom:0;padding-bottom:0}
+  .tools{margin-left:0}
+}
+@media (prefers-reduced-motion:reduce){.step{transition:none}}
+</style>
+<div id="root"></div>
+<script type="application/json" id="data">{"title":"FI Selection and Contracting","sub":"PAMOJA Component 1.2 · v0.1 (draft) · click any step or label","labels":{"acct":"LGA remains accountable to PMO-RALG for implementation","par":"in parallel"},"steps":[{"id":"s1","n":"1.1","x":20,"y":190,"w":210,"t":"Select FIs","note":"Through the streamlined process, discussed separately","mk":"","owners":["T"],"tabs":["",""],"doc":false,"cue":false,"what":"PMO-RALG selects the FIs for the pilots through the streamlined process. We will discuss that process separately.","why":"","open":"The selection process is to be discussed separately."},{"id":"s2","n":"1.2","x":330,"y":30,"w":230,"t":"Master financing\nagreement","note":"One per FI, covering all its districts","mk":"Signed by PMO-RALG","owners":[],"tabs":["T","F"],"doc":true,"cue":false,"what":"PMO-RALG enters into a master financing agreement with each participating FI. The agreement could set standard financing terms, performance expectations, reporting requirements, oversight arrangements, and the conditions for transferring and using program funds and for the FI’s lending to CMGs.","why":"Component 1.2 funds come through the PAMOJA project, not the LGA 10 percent funds. One agreement per FI keeps PMO-RALG’s contractual and fiduciary accountability and avoids several financing agreements where an FI works across districts.","open":"Reporting to the CRBs is to be discussed.","pops":[["master","What the agreement covers"]]},{"id":"s3","n":"1.3","x":330,"y":350,"w":230,"t":"Implementation\nagreement","note":"One per district, in parallel with 1.2","mk":"Signed by each LGA","owners":[],"tabs":["L","F"],"doc":true,"cue":false,"what":"Each participating LGA enters into an implementation coordination agreement with the relevant FI. It covers local implementation, coordination, reporting, and each side’s operational responsibilities. LGAs facilitate delivery on the ground and remain accountable to PMO-RALG for implementation.","why":"LGAs keep ownership of local implementation.","open":"","pops":[["local","Local implementation"]]},{"id":"s4","n":"1.4","x":700,"y":190,"w":270,"t":"Funding and\nlending to CMGs","note":"Next stage, shown for context. Edit or remove.","mk":"","owners":["F","C"],"tabs":["",""],"doc":false,"cue":true,"what":"With both agreements in place, program funds are transferred and used, and the FI lends to CMGs, under the terms set in the master financing agreement (1.2) and the local arrangements in the implementation agreement (1.3).","why":"","open":""}],"pops":{"master":{"h":"Master financing agreement: what it covers","sub":"PMO-RALG and each FI · step 1.2","rows":[["Financing",["Standard financing terms","Performance expectations","Portfolio quality metrics","Reporting","Oversight","Transfer and use of program funds"]],["Lending to CMGs",["Key terms disclosure","Reminders","Repayments","Recovery, with no coercive means","FIs can restructure loans",{"t":"FIs report positive and negative repayment data to the CRBs","tbd":1}]]],"tbd":["Should FIs report positive and negative repayment data to the CRBs?"],"hint":""},"local":{"h":"Local implementation: what the LGA checks","sub":"Before it refers a CMG to the FI · agreed at step 1.3","rows":[["Eligibility",["Registered CMG","80% women","Economic activities","Group bank account","At least one year as a group",{"t":"Members are residents of the target village","tbd":1},{"t":"Not more than 30 members","tbd":1},"Members not formally employed","Group strengthening training certificate (Component 1.1)","NIDA ID for every member"]],["Plan",["Microcredit plan"]],["Application",["Complete"]]],"tbd":["A registered CMG has members who are not residents of the target village: what should it do?","A registered CMG has more than 30 members: what happens to it?"],"hint":""}},"rails":[{"id":"why","label":"Why this structure","color":"--p","chips":[{"k":"Accountability","title":"PMO-RALG keeps overall contractual and fiduciary accountability","text":"PMO-RALG signs the master financing agreement, so contractual and fiduciary accountability stays with it. LGAs remain accountable to PMO-RALG for implementation.","steps":["s2","s3"]},{"k":"Fewer agreements","title":"One financing agreement per FI","text":"Where an FI operates across districts, one master agreement replaces several financing agreements.","steps":["s2"]},{"k":"Consistency","title":"Consistency and efficiency","text":"Standard financing terms, performance expectations and reporting apply the same way in every district an FI serves.","steps":["s2"]},{"k":"Local ownership","title":"LGAs keep ownership of local implementation","text":"Each LGA signs its own implementation coordination agreement and facilitates delivery on the ground.","steps":["s3"]}]},{"id":"open","label":"To discuss","color":"--e","chips":[{"k":"FI selection process","title":"How FIs are selected for the pilots","text":"PMO-RALG will select FIs for the pilots through the streamlined process, which will be discussed separately.","steps":["s1"]}]}],"glossary":[{"term":"CRB","def":"Credit Reference Bureau. A body that collects and shares borrowers’ repayment records."},{"term":"NIDA","def":"National Identification Authority. The body that issues national ID numbers."},{"term":"CMG","def":"Community Microfinance Group. A group of members, mostly women, that saves and lends within the community."},{"term":"Component 1.2","def":"The part of the PAMOJA project that provides funds for CMG lending through financial institutions."},{"term":"Fiduciary accountability","def":"The duty to make sure program funds are used properly and for their intended purpose."},{"term":"FI","def":"Financial institution. A bank or other licensed lender that takes part in the pilots and lends to CMGs."},{"term":"Implementation coordination agreement","def":"An agreement between one LGA and one FI that sets out how local implementation, coordination and reporting will work."},{"term":"LGA","def":"Local Government Authority. A district or municipal council."},{"term":"LGA 10 percent funds","def":"The share of a council’s own revenue that Tanzanian law sets aside for loans to women, youth and persons with disabilities. Component 1.2 funds are separate from these."},{"term":"Master financing agreement","def":"One agreement between PMO-RALG and each participating FI. It sets the standard terms for funding the FI and for the FI’s lending to CMGs."},{"term":"PAMOJA","def":"The World Bank-supported project (P178813) in Tanzania that this work belongs to."},{"term":"Portfolio quality metrics","def":"Measures of how well a lender’s loans are being repaid, such as the share of loans that are overdue."},{"term":"Pilot","def":"The first, limited roll-out in selected districts, used to test the approach before wider use."},{"term":"PMO-RALG","def":"The Prime Minister’s Office, Regional Administration and Local Government."}]}</script>
+<script id="app">
+const D0=document.getElementById('data').textContent;
+const D=JSON.parse(D0);
+const PARTY={T:{n:'PMO-RALG',v:'--p'},L:{n:'LGA',v:'--l'},F:{n:'FI',v:'--fi'},C:{n:'CMG',v:'--c'}};
+const KEYS=Object.keys(PARTY);
+const pc=k=>'var('+PARTY[k].v+')';
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const $=s=>document.querySelector(s);
+const STEP=id=>D.steps.find(s=>s.id===id);
+const stepName=s=>s.t.replace(/\n/g,' ');
+const RESET=':root{color-scheme:light;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}';
+let edit=false, pinned=null, hov=null, dirty=false, art=null, baseKey='fi-contracting-draft';
+
+/* restore an unsaved draft made on this same saved version */
+try{const raw=localStorage.getItem(baseKey);if(raw){const o=JSON.parse(raw);if(o&&o.base===D0.length+':'+hashStr(D0)){Object.assign(D,o.data);dirty=true;}}}catch(e){}
+function hashStr(s){let h=0;for(let i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))|0}return h}
+function persist(){dirty=true;try{localStorage.setItem(baseKey,JSON.stringify({base:D0.length+':'+hashStr(D0),data:D}))}catch(e){}updateTools();}
+
+/* ---------- shell ---------- */
+$('#root').innerHTML='<div class="app" id="app"><header><h1 id="ttl"></h1><span class="sub" id="sub"></span>'+
+ '<div class="tools"><span class="status" id="status"></span><button class="btn" id="editBtn" aria-pressed="false">Edit</button><button class="btn save" id="saveBtn" hidden>Save changes</button></div></header>'+
+ '<div class="main"><div class="stage"><div class="shelf"><div class="tab"><b>1</b>PMO-RALG · selects FIs and contracts with them</div></div><div class="svgwrap"><svg id="dg" viewBox="0 0 1000 550" role="img" aria-label="Flowchart of FI selection and contracting"></svg></div></div>'+
+ '<div class="rails" id="rails"></div></div>'+
+ '<aside id="panel"></aside>'+
+ '<section class="glossary" id="gloss"></section><div class="modal" id="modal"><div class="mbox" id="mbox" role="dialog" aria-modal="true"></div></div></div>';
+const app=$('#app'),svg=$('#dg'),panel=$('#panel');
+
+/* ---------- drawing ---------- */
+function wrap(t,max,lines){const out=[];let cur='';String(t||'').split(/\s+/).filter(Boolean).forEach(w=>{if((cur+' '+w).trim().length>max&&cur){out.push(cur);cur=w}else cur=(cur+' '+w).trim()});if(cur)out.push(cur);if(out.length>lines){out.length=lines;out[lines-1]=out[lines-1].replace(/.{0,2}$/,'…')}return out}
+const docIcon=(x,y)=>'<g transform="translate('+x+','+y+')"><rect width="16" height="20" rx="2" style="fill:var(--card);stroke:var(--ink2)"/><path d="M4 6H12M4 10H12M4 14H10" style="stroke:var(--ink2)"/></g>';
+function card(s){
+  const w=s.w,h=170,x=s.x,y=s.y,two=s.tabs&&s.tabs[0]&&s.tabs[1],tab=two?14:0;
+  let g='<g class="step'+(s.cue?' cue':'')+'" data-id="'+s.id+'" tabindex="0" role="button" aria-label="'+esc(s.n+' '+stepName(s))+'"><rect class="card" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="10"/>';
+  if(two){
+    g+='<path d="M'+(x+10)+' '+y+'H'+(x+14)+'V'+(y+h)+'H'+(x+10)+'A10 10 0 0 1 '+x+' '+(y+h-10)+'V'+(y+10)+'A10 10 0 0 1 '+(x+10)+' '+y+'Z" style="fill:'+pc(s.tabs[0])+'"/>';
+    g+='<path d="M'+(x+w-10)+' '+y+'H'+(x+w-14)+'V'+(y+h)+'H'+(x+w-10)+'A10 10 0 0 0 '+(x+w)+' '+(y+h-10)+'V'+(y+10)+'A10 10 0 0 0 '+(x+w-10)+' '+y+'Z" style="fill:'+pc(s.tabs[1])+'"/>';
+  }
+  const cx=x+22+tab;
+  g+='<circle class="numc" cx="'+cx+'" cy="'+(y+24)+'" r="13"/><text class="numt" x="'+cx+'" y="'+(y+28)+'">'+esc(s.n)+'</text>';
+  s.t.split('\n').slice(0,3).forEach((l,i)=>{g+='<text class="t" x="'+(cx+22)+'" y="'+(y+29+i*21)+'">'+esc(l)+'</text>'});
+  if(s.doc) g+=docIcon(x+w-34,y+8);
+  if(!two) (s.owners||[]).slice().reverse().forEach((o,i)=>{g+='<circle cx="'+(x+w-18-i*18)+'" cy="'+(y+(s.doc?42:22))+'" r="7" style="fill:'+pc(o)+'"/>'});
+  g+='<line x1="'+(x+12+tab)+'" y1="'+(y+84)+'" x2="'+(x+w-12-tab)+'" y2="'+(y+84)+'" style="stroke:var(--soft)"/>';
+  const max=Math.floor((w-44-tab)/6.4);
+  wrap(s.note,max,3).forEach((l,i)=>{g+='<text class="f" x="'+(x+14+tab)+'" y="'+(y+106+i*17)+'">'+esc(l)+'</text>'});
+  const mk=s.cue?'Next stage':s.mk;
+  if(mk) g+='<text class="mk" x="'+(x+14+tab)+'" y="'+(y+h-14)+'"><tspan style="fill:var(--ob)">'+(s.cue?'↻ ':'◆ ')+'</tspan>'+esc(wrap(mk,max-2,1)[0]||'')+'</text>';
+  return g+'</g>';
+}
+function renderSvg(){
+  const lines=wrap(D.labels.acct,24,3).map((l,i)=>'<tspan x="457" dy="'+(i?16:0)+'">'+esc(l)+'</tspan>').join('');
+  svg.innerHTML='<defs><marker id="ap" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ahp" d="M0 0L10 5L0 10z"/></marker><marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="aha" d="M0 0L10 5L0 10z"/></marker></defs>'+
+  '<g class="flow">'+
+  '<path class="proc" d="M230 275H280V115H328" marker-end="url(#ap)"/>'+
+  '<path class="proc" d="M230 275H280V435H328" marker-end="url(#ap)"/>'+
+  '<path class="proc" d="M560 115H650V275H698" marker-end="url(#ap)"/>'+
+  '<path class="proc" d="M560 435H650V275H698"/>'+
+  '<path class="acct" d="M445 348V204" marker-end="url(#aa)"/>'+
+  '<text class="lab" x="457" y="262" style="fill:var(--l)">'+lines+'</text>'+
+  '<text class="f" transform="rotate(-90 270 275)" x="270" y="275" text-anchor="middle">'+esc(D.labels.par)+'</text></g>'+
+  D.steps.map(card).join('');
+  svg.querySelectorAll('.step').forEach(g=>{const id=g.dataset.id;
+    g.addEventListener('click',e=>{e.stopPropagation();toggle({type:'step',id})});
+    g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();toggle({type:'step',id})}});
+    g.addEventListener('mouseenter',()=>{if(!pinned&&!edit)hover({type:'step',id})});
+    g.addEventListener('mouseleave',()=>{if(!pinned&&!edit)hover(null)});
+  });
+}
+function renderRails(){
+  const el=$('#rails');el.innerHTML='';
+  D.rails.forEach((r,ri)=>{
+    const row=document.createElement('div');row.className='rail';row.style.setProperty('--rc','var('+r.color+')');
+    row.innerHTML='<span class="rl"><i class="dot" style="background:var('+r.color+')"></i>'+esc(r.label)+'</span>';
+    r.chips.forEach((c,ci)=>{const b=document.createElement('button');b.className='chip';b.dataset.r=ri;b.dataset.c=ci;b.textContent=c.k||'(new label)';
+      b.addEventListener('click',e=>{e.stopPropagation();toggle({type:'chip',r:ri,c:ci})});
+      b.addEventListener('mouseenter',()=>{if(!pinned&&!edit)hover({type:'chip',r:ri,c:ci})});
+      b.addEventListener('mouseleave',()=>{if(!pinned&&!edit)hover(null)});
+      row.appendChild(b)});
+    if(edit){const a=document.createElement('button');a.className='chip add';a.textContent='+ add';
+      a.addEventListener('click',e=>{e.stopPropagation();r.chips.push({k:'New label',title:'',text:'',steps:[]});persist();renderRails();toggleSet({type:'chip',r:ri,c:r.chips.length-1})});row.appendChild(a)}
+    el.appendChild(row);
+  });
+}
+/* ---------- selection ---------- */
+const same=(a,b)=>a&&b&&JSON.stringify(a)===JSON.stringify(b);
+function cur(){return pinned||hov}
+function decorate(){
+  const sel=cur();
+  svg.classList.remove('pin','focus');app.classList.remove('pin');
+  svg.querySelectorAll('.step').forEach(g=>g.classList.remove('sel','hl'));
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on','rel'));
+  if(!sel)return;
+  if(sel.type==='step'){
+    const g=svg.querySelector('.step[data-id="'+sel.id+'"]');if(g)g.classList.add('sel');
+    D.rails.forEach((r,ri)=>r.chips.forEach((c,ci)=>{if((c.steps||[]).includes(sel.id)){const b=document.querySelector('.chip[data-r="'+ri+'"][data-c="'+ci+'"]');if(b)b.classList.add('rel')}}));
+    if(pinned){svg.classList.add('pin');app.classList.add('pin')}
+  }else{
+    const c=D.rails[sel.r]&&D.rails[sel.r].chips[sel.c];if(!c)return;
+    svg.classList.add('focus');
+    (c.steps||[]).forEach(id=>{const g=svg.querySelector('.step[data-id="'+id+'"]');if(g)g.classList.add('hl')});
+    const b=document.querySelector('.chip[data-r="'+sel.r+'"][data-c="'+sel.c+'"]');if(b)b.classList.add('on');
+  }
+}
+function renderAll(){renderSvg();renderRails();decorate()}
+function hover(s){hov=s;decorate();renderPanel()}
+function toggle(s){pinned=same(pinned,s)?null:s;hov=null;decorate();renderPanel()}
+function toggleSet(s){pinned=s;hov=null;decorate();renderPanel()}
+
+/* ---------- panel ---------- */
+const who=arr=>'<div class="who">'+arr.map(o=>'<span><i class="dot" style="background:'+pc(o)+'"></i>'+PARTY[o].n+'</span>').join('')+'</div>';
+function parties(s){return (s.tabs&&s.tabs[0]&&s.tabs[1])?s.tabs:(s.owners||[])}
+function legend(){
+  let h='<h2>How to read this</h2><div class="sub">Who signs what, and in what order.</div>'+
+  '<div class="nest">PMO-RALG <small>selects FIs and signs the master agreement</small><div class="nest nl">LGA <small>signs a local agreement with the FI</small></div><div class="nest nf">FI <small>lends to CMGs</small></div></div>'+
+  '<h4>Key</h4><div class="key">'+
+  '<svg width="40" height="22"><rect x="1" y="1" width="38" height="20" rx="4" style="fill:var(--card);stroke:var(--line)"/><rect x="1" y="1" width="5" height="20" style="fill:var(--p)"/><rect x="34" y="1" width="5" height="20" style="fill:var(--fi)"/></svg><span>Side tabs: the two parties to an agreement</span>'+
+  '<svg width="40" height="16"><circle cx="10" cy="8" r="6" style="fill:var(--fi)"/><circle cx="26" cy="8" r="6" style="fill:var(--c)"/></svg><span>Badges: who carries out the step</span>'+
+  '<svg width="40" height="22">'+docIcon(12,1)+'</svg><span>Written agreement signed</span>'+
+  '<svg width="40" height="22"><rect x="2" y="2" width="36" height="18" rx="4" style="fill:var(--bg);stroke:var(--mute);stroke-dasharray:4 3"/></svg><span>Next stage, shown for context</span>'+
+  '<svg width="40" height="10"><path d="M2 5H34" style="stroke:var(--l);stroke-width:2;stroke-dasharray:5 4"/></svg><span>Accountability line</span></div>'+
+  '<div class="hint">Click a step or a label to see detail. Esc steps back out. Use Edit to change any text.</div>';
+  if(edit){h+='<h4>Diagram labels</h4><div class="form"><label>Accountability line<textarea data-f="lab.acct" rows="2">'+esc(D.labels.acct)+'</textarea></label><label>Parallel label<input type="text" data-f="lab.par" value="'+esc(D.labels.par)+'"></label></div>'}
+  panel.innerHTML=h;
+}
+const popTags=s=>(s.pops&&s.pops.length)?'<div class="tags" style="margin:8px 0">'+s.pops.map(p=>'<button class="tag pop" data-pop="'+p[0]+'" title="Click to see what it contains">'+esc(p[1])+' ›</button>').join('')+'</div>':'';
+function stepRead(s){
+  const rel=[];D.rails.forEach(r=>r.chips.forEach(c=>{if((c.steps||[]).includes(s.id))rel.push(c.k)}));
+  panel.innerHTML='<h2>'+esc(s.n)+' · '+esc(stepName(s))+'</h2><div class="sub">'+esc(D.title)+'</div>'+who(parties(s))+
+  '<p>'+esc(s.what)+'</p>'+
+  popTags(s)+
+  (s.why?'<h4>Why this structure</h4><p>'+esc(s.why)+'</p>':'')+
+  (s.open?'<h4>Still to settle</h4><p class="open">'+esc(s.open)+'</p>':'')+
+  (rel.length?'<h4>Labels that apply</h4><div class="tags">'+rel.map(k=>'<span class="tag">'+esc(k)+'</span>').join('')+'</div>':'');
+}
+const opt=(v,cur)=>'<option value="'+v+'"'+(v===cur?' selected':'')+'>'+(v?PARTY[v].n:'None')+'</option>';
+function stepForm(s){
+  panel.innerHTML='<h2>Edit step '+esc(s.n)+'</h2><div class="sub">Changes show in the chart as you type.</div><div class="form" data-step="'+s.id+'">'+popTags(s)+
+  '<label>Step number<input type="text" data-f="n" value="'+esc(s.n)+'"></label>'+
+  '<label>Title<textarea data-f="t" rows="2">'+esc(s.t)+'</textarea><span class="note">Press Enter to start a new line. Up to 3 lines fit.</span></label>'+
+  '<label>Short note on the card<input type="text" data-f="note" value="'+esc(s.note)+'"></label>'+
+  '<label>Marker line (bottom of card)<input type="text" data-f="mk" value="'+esc(s.mk)+'"></label>'+
+  '<label>Description<textarea data-f="what" rows="5">'+esc(s.what)+'</textarea></label>'+
+  '<label>Why this structure<textarea data-f="why" rows="3">'+esc(s.why)+'</textarea></label>'+
+  '<label>Still to settle<textarea data-f="open" rows="2">'+esc(s.open)+'</textarea></label>'+
+  '<div><div class="note" style="margin-bottom:4px;font-weight:700">Who carries it out</div><div class="checks">'+KEYS.map(k=>'<label><input type="checkbox" data-own="'+k+'"'+((s.owners||[]).includes(k)?' checked':'')+'>'+PARTY[k].n+'</label>').join('')+'</div></div>'+
+  '<div><div class="note" style="margin-bottom:4px;font-weight:700">Agreement between (side tabs)</div><div class="pair"><select data-tab="0">'+['',...KEYS].map(k=>opt(k,s.tabs[0])).join('')+'</select><select data-tab="1">'+['',...KEYS].map(k=>opt(k,s.tabs[1])).join('')+'</select></div><div class="note">Choose two parties to show side tabs. Otherwise badges show.</div></div>'+
+  '<div class="checks"><label><input type="checkbox" data-f="doc"'+(s.doc?' checked':'')+'>Show agreement icon</label><label><input type="checkbox" data-f="cue"'+(s.cue?' checked':'')+'>Dashed context card</label></div></div>';
+}
+function chipRead(c){
+  panel.innerHTML='<h2>'+esc(c.title||c.k)+'</h2><div class="sub">'+esc(c.k)+'</div><p>'+esc(c.text)+'</p>'+
+  '<h4>Applies at steps</h4><div class="tags">'+((c.steps||[]).length?c.steps.map(id=>{const s=STEP(id);return s?'<span class="tag">'+esc(s.n)+' · '+esc(stepName(s))+'</span>':''}).join(''):'<span class="tag">—</span>')+'</div>';
+}
+function chipForm(c){
+  panel.innerHTML='<h2>Edit label</h2><div class="sub">Changes show as you type.</div><div class="form" data-chip="1">'+
+  '<label>Chip text<input type="text" data-cf="k" value="'+esc(c.k)+'"></label>'+
+  '<label>Headline<input type="text" data-cf="title" value="'+esc(c.title)+'"></label>'+
+  '<label>Detail<textarea data-cf="text" rows="5">'+esc(c.text)+'</textarea></label>'+
+  '<div><div class="note" style="margin-bottom:4px;font-weight:700">Applies at steps</div><div class="checks">'+D.steps.map(s=>'<label><input type="checkbox" data-cs="'+s.id+'"'+((c.steps||[]).includes(s.id)?' checked':'')+'>'+esc(s.n)+'</label>').join('')+'</div></div>'+
+  '<button class="btn del" data-del="1">Delete this label</button></div>';
+}
+function renderPanel(){
+  const sel=cur();
+  if(!sel){legend();return}
+  if(sel.type==='step'){const s=STEP(sel.id);if(!s){legend();return}(edit&&pinned)?stepForm(s):stepRead(s)}
+  else{const c=D.rails[sel.r]&&D.rails[sel.r].chips[sel.c];if(!c){legend();return}(edit&&pinned)?chipForm(c):chipRead(c)}
+}
+panel.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.dataset.f&&t.dataset.f.startsWith('lab.')){D.labels[t.dataset.f.slice(4)]=t.value;persist();renderSvg();decorate();return}
+  const form=t.closest('[data-step]');
+  if(form){const s=STEP(form.dataset.step);if(!s)return;
+    if(t.dataset.f){s[t.dataset.f]=t.type==='checkbox'?t.checked:t.value}
+    else if(t.dataset.own){s.owners=(s.owners||[]).filter(k=>k!==t.dataset.own);if(t.checked)s.owners.push(t.dataset.own)}
+    else if(t.dataset.tab!==undefined){s.tabs[+t.dataset.tab]=t.value}
+    persist();renderAll();return}
+  if(t.closest('[data-chip]')){const c=D.rails[pinned.r].chips[pinned.c];
+    if(t.dataset.cf){c[t.dataset.cf]=t.value}
+    else if(t.dataset.cs){c.steps=(c.steps||[]).filter(k=>k!==t.dataset.cs);if(t.checked)c.steps.push(t.dataset.cs)}
+    persist();renderRails();decorate();}
+});
+panel.addEventListener('click',e=>{e.stopPropagation();const pb=e.target.closest('[data-pop]');if(pb){openPop(pb.dataset.pop);return}
+  if(e.target.dataset.del&&pinned&&pinned.type==='chip'){D.rails[pinned.r].chips.splice(pinned.c,1);pinned=null;persist();renderRails();decorate();renderPanel()}});
+
+/* ---------- glossary ---------- */
+function renderGloss(){
+  const g=$('#gloss');
+  if(!edit){
+    const list=D.glossary.slice().sort((a,b)=>a.term.localeCompare(b.term));
+    g.innerHTML='<h2>Glossary</h2><div class="sub">Acronyms and terms used on this page.</div><dl class="gl">'+list.map(x=>'<dt>'+esc(x.term)+'</dt><dd>'+esc(x.def)+'</dd>').join('')+'</dl>';
+  }else{
+    g.innerHTML='<h2>Glossary</h2><div class="sub">Edit terms and meanings. They are listed A to Z when you leave edit mode.</div><div class="gl">'+
+    D.glossary.map((x,i)=>'<div class="glrow"><input type="text" data-gt="'+i+'" value="'+esc(x.term)+'" aria-label="Term"><input type="text" data-gd="'+i+'" value="'+esc(x.def)+'" aria-label="Meaning"><button class="btn del" data-gx="'+i+'">Remove</button></div>').join('')+
+    '</div><button class="btn" id="gadd">+ Add term</button>';
+  }
+}
+$('#gloss').addEventListener('input',e=>{const t=e.target;
+  if(t.dataset.gt!==undefined)D.glossary[+t.dataset.gt].term=t.value;
+  else if(t.dataset.gd!==undefined)D.glossary[+t.dataset.gd].def=t.value;
+  else return;persist()});
+$('#gloss').addEventListener('click',e=>{const t=e.target;
+  if(t.dataset.gx!==undefined){D.glossary.splice(+t.dataset.gx,1);persist();renderGloss()}
+  if(t.id==='gadd'){D.glossary.push({term:'',def:''});persist();renderGloss()}});
+
+/* ---------- header, edit mode, save ---------- */
+const ttl=$('#ttl'),sub=$('#sub'),editBtn=$('#editBtn'),saveBtn=$('#saveBtn'),statusEl=$('#status');
+ttl.textContent=D.title;sub.textContent=D.sub;
+ttl.addEventListener('input',()=>{D.title=ttl.textContent;persist()});
+sub.addEventListener('input',()=>{D.sub=sub.textContent;persist()});
+function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2600)}
+function updateTools(){
+  saveBtn.hidden=!(edit&&art);
+  saveBtn.disabled=!dirty;
+  statusEl.textContent=dirty?'Unsaved changes':'';
+}
+editBtn.addEventListener('click',e=>{e.stopPropagation();
+  edit=!edit;editBtn.setAttribute('aria-pressed',String(edit));editBtn.textContent=edit?'Done editing':'Edit';
+  ttl.contentEditable=sub.contentEditable=edit?'true':'false';
+  if(!edit&&pinned){/* keep selection, show read view */}
+  hov=null;renderRails();decorate();renderPanel();renderGloss();updateTools();
+});
+function build(){
+  const E='</';
+  const css=document.getElementById('css').textContent, js=document.getElementById('app').textContent;
+  const data=JSON.stringify(D).replace(/</g,'\\u003c');
+  return '<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>'+RESET+E+'style>'+E+'head><body>'+
+   '<title>FI Selection and Contracting'+E+'title><style id="css">'+css+E+'style><div id="root">'+E+'div><script type="application/json" id="data">'+data+E+'script><script id="app">'+js+E+'script>'+E+'body>'+E+'html>';
+}
+saveBtn.addEventListener('click',async e=>{e.stopPropagation();
+  if(!art)return;
+  saveBtn.disabled=true;statusEl.textContent='Saving…';
+  try{await art.publish(build());try{localStorage.removeItem(baseKey)}catch(_){}dirty=false;toast('Saved as a new version')}
+  catch(err){saveBtn.disabled=false;statusEl.textContent='Unsaved changes';
+    const c=err&&err.code;
+    toast(c==='not_writer'||c==='not_granted'?'This view is read-only, so changes cannot be saved.':c==='conflict'?'A newer version was published. Reloading to it.':'Could not save. Your edits are kept on this page.')}
+});
+if(window.claude&&window.claude.use){window.claude.use('artifact').then(a=>{art=a;updateTools()}).catch(()=>{})}
+
+/* ---------- pop-up ---------- */
+const modal=$('#modal'),mbox=$('#mbox');let popKey=null;
+const itemTxt=x=>typeof x==='string'?x:x.t+' *';
+const parseItems=v=>v.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>/\s\*$/.test(l)?{t:l.replace(/\s*\*$/,''),tbd:1}:l);
+const lines=v=>v.split('\n').map(l=>l.trim()).filter(Boolean);
+function popRead(P){
+  return '<button class="x" aria-label="Close">×</button><h2>'+esc(P.h)+'</h2><div class="sub">'+esc(P.sub)+'</div><dl class="rep">'+
+  P.rows.map(r=>'<dt>'+esc(r[0])+'</dt><dd><div class="tags">'+r[1].map(x=>typeof x==='string'?'<span class="tag">'+esc(x)+'</span>':'<span class="tag tbd">'+esc(x.t)+' *</span>').join('')+'</div></dd>').join('')+'</dl>'+
+  (P.tbd&&P.tbd.length?'<h4>* To be decided</h4>'+P.tbd.map(t=>'<p class="open">'+esc(t)+'</p>').join(''):'')+
+  (P.hint?'<div class="hint">'+esc(P.hint)+'</div>':'');
+}
+function popForm(P){
+  return '<button class="x" aria-label="Close">×</button><h2>Edit pop-up</h2><div class="sub">Changes are kept as you type. Put one item per line. End a line with * to mark it as to be decided.</div><div class="form">'+
+  '<label>Heading<input type="text" data-pp="h" value="'+esc(P.h)+'"></label>'+
+  '<label>Subheading<input type="text" data-pp="sub" value="'+esc(P.sub)+'"></label>'+
+  P.rows.map((r,i)=>'<div class="prow"><label>Row title<input type="text" data-prt="'+i+'" value="'+esc(r[0])+'"></label><label>Items<textarea data-pri="'+i+'" rows="4">'+esc(r[1].map(itemTxt).join('\n'))+'</textarea></label><button class="btn del" data-prx="'+i+'">Remove row</button></div>').join('')+
+  '<button class="btn" data-pradd="1" style="align-self:flex-start">+ Add row</button>'+
+  '<label>To be decided (one per line)<textarea data-pp="tbd" rows="3">'+esc((P.tbd||[]).join('\n'))+'</textarea></label>'+
+  '<label>Hint (optional)<textarea data-pp="hint" rows="2">'+esc(P.hint||'')+'</textarea></label></div>';
+}
+function drawPop(){const P=D.pops[popKey];mbox.innerHTML=edit?popForm(P):popRead(P)}
+function openPop(k){if(!D.pops||!D.pops[k])return;popKey=k;drawPop();modal.classList.add('show');const x=mbox.querySelector('.x');if(x)x.focus()}
+function closePop(){modal.classList.remove('show');popKey=null}
+modal.addEventListener('click',e=>{e.stopPropagation();const t=e.target;
+  if(t===modal||t.closest('.x')){closePop();return}
+  const P=D.pops[popKey];if(!P)return;
+  if(t.dataset.prx!==undefined){P.rows.splice(+t.dataset.prx,1);persist();drawPop()}
+  if(t.dataset.pradd){P.rows.push(['New row',[]]);persist();drawPop()}});
+modal.addEventListener('input',e=>{const t=e.target,P=D.pops[popKey];if(!P)return;
+  if(t.dataset.pp){const f=t.dataset.pp;P[f]=(f==='tbd')?lines(t.value):t.value}
+  else if(t.dataset.prt!==undefined)P.rows[+t.dataset.prt][0]=t.value;
+  else if(t.dataset.pri!==undefined)P.rows[+t.dataset.pri][1]=parseItems(t.value);
+  else return;persist()});
+
+document.addEventListener('click',()=>{pinned=null;hov=null;decorate();renderPanel()});
+document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(modal.classList.contains('show')){closePop();return}if(pinned){pinned=null;decorate();renderPanel()}});
+
+renderAll();renderGloss();renderPanel();updateTools();
+</script>
+
+</body>
+</html>
